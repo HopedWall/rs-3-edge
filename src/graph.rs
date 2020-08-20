@@ -10,6 +10,8 @@ use gfa::parser::{GFAParser, GFAParsingConfig};
 use rs_cactusgraph::EdgeFunctions;
 use rs_cactusgraph::BiedgedGraph;
 use std::convert::TryInto;
+use rs_cactusgraph::NodeFunctions;
+
 
 pub type AdjacencyList = Vec<usize>;
 pub type BTreeGraph = BTreeMap<usize, AdjacencyList>;
@@ -68,28 +70,45 @@ impl Graph {
     pub fn from_biedged_graph(biedged_graph: &BiedgedGraph) -> Graph {
 
         let mut graph: BTreeMap<usize, AdjacencyList> = BTreeMap::new();
+        let mut name_map: HashMap<BString, usize> = HashMap::new();
         let mut inv_names = Vec::new();
 
-        biedged_graph.get_black_edges();
+        let mut get_ix = |name: &BStr| {
+            if let Some(ix) = name_map.get(name) {
+                *ix
+            } else {
+                let ix = name_map.len();
+                name_map.insert(name.into(), ix);
+                inv_names.push(name.into());
+                ix
+            }
+        };
+
+        // for nodeId in biedged_graph.get_nodes() {
+        //     let val = BString::from(format!("{:#?}",nodeId));
+        //     inv_names.push(val);
+        // }
+
         // Black edges
+        biedged_graph.get_black_edges();
         for black_edge in biedged_graph.get_black_edges() {
             
-            let from_ix = black_edge.from;
-            let to_ix = black_edge.to;
+            let from_ix = get_ix(BString::from(format!("{:#?}",black_edge.from)).as_ref());
+            let to_ix = get_ix(BString::from(format!("{:#?}",black_edge.to)).as_ref());
 
-            graph.entry(from_ix.try_into().unwrap()).or_default().push(to_ix.try_into().unwrap());
-            graph.entry(to_ix.try_into().unwrap()).or_default().push(from_ix.try_into().unwrap());
+            graph.entry(from_ix).or_default().push(to_ix);
+            graph.entry(to_ix).or_default().push(from_ix);
         }
 
-        // Gray edges -- should always be [] if step 1 of the algorithm has been done
-        for gray_edge in biedged_graph.get_gray_edges() {
+        // // Gray edges -- should always be [] if step 1 of the algorithm has been done
+        // for gray_edge in biedged_graph.get_gray_edges() {
             
-            let from_ix = gray_edge.from;
-            let to_ix = gray_edge.to;
+        //     let from_ix = gray_edge.from;
+        //     let to_ix = gray_edge.to;
 
-            graph.entry(from_ix.try_into().unwrap()).or_default().push(to_ix.try_into().unwrap());
-            graph.entry(to_ix.try_into().unwrap()).or_default().push(from_ix.try_into().unwrap());
-        }
+        //     graph.entry(from_ix.try_into().unwrap()).or_default().push(to_ix.try_into().unwrap());
+        //     graph.entry(to_ix.try_into().unwrap()).or_default().push(from_ix.try_into().unwrap());
+        // }
 
         Graph { graph, inv_names }
     }
