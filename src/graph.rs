@@ -6,6 +6,11 @@ use std::io::prelude::*;
 
 use gfa::parser::{GFAParser, GFAParsingConfig};
 
+//use rs_cactusgraph::*;
+use rs_cactusgraph::EdgeFunctions;
+use rs_cactusgraph::BiedgedGraph;
+use std::convert::TryInto;
+
 pub type AdjacencyList = Vec<usize>;
 pub type BTreeGraph = BTreeMap<usize, AdjacencyList>;
 
@@ -55,6 +60,35 @@ impl Graph {
                 graph.entry(from_ix).or_default().push(to_ix);
                 graph.entry(to_ix).or_default().push(from_ix);
             }
+        }
+
+        Graph { graph, inv_names }
+    }
+
+    pub fn from_biedged_graph(biedged_graph: &BiedgedGraph) -> Graph {
+
+        let mut graph: BTreeMap<usize, AdjacencyList> = BTreeMap::new();
+        let mut inv_names = Vec::new();
+
+        biedged_graph.get_black_edges();
+        // Black edges
+        for black_edge in biedged_graph.get_black_edges() {
+            
+            let from_ix = black_edge.from;
+            let to_ix = black_edge.to;
+
+            graph.entry(from_ix.try_into().unwrap()).or_default().push(to_ix.try_into().unwrap());
+            graph.entry(to_ix.try_into().unwrap()).or_default().push(from_ix.try_into().unwrap());
+        }
+
+        // Gray edges -- should always be [] if step 1 of the algorithm has been done
+        for gray_edge in biedged_graph.get_gray_edges() {
+            
+            let from_ix = gray_edge.from;
+            let to_ix = gray_edge.to;
+
+            graph.entry(from_ix.try_into().unwrap()).or_default().push(to_ix.try_into().unwrap());
+            graph.entry(to_ix.try_into().unwrap()).or_default().push(from_ix.try_into().unwrap());
         }
 
         Graph { graph, inv_names }

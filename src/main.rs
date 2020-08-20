@@ -10,6 +10,9 @@ use three_edge_connected::algorithm;
 use three_edge_connected::graph::Graph;
 use three_edge_connected::state::State;
 
+use rs_cactusgraph::BiedgedGraph;
+use rs_cactusgraph::NodeFunctions;
+
 /// Finds the 3-edge-connected components in a graph. Input must be a
 /// bridgeless graph in the GFA format. Output is a list of
 /// 3-edge-connected components, one per line, as space-delimited
@@ -65,7 +68,12 @@ fn main() {
         }
     };
 
-    let graph = Graph::from_gfa_reader(&mut in_handle);
+    //let graph = Graph::from_gfa_reader(&mut in_handle);
+    //let mut biedged_graph : BiedgedGraph = gfa_to_biedged_graph(&PathBuf::from("./input/samplePath3.gfa")).unwrap();
+    let biedged_graph : BiedgedGraph = BiedgedGraph::new();
+    biedged_graph.add_node(1);
+    biedged_graph.contract_all_gray_edges();
+    let graph = Graph::from_biedged_graph(&biedged_graph);
 
     let mut state = State::initialize(&graph.graph);
 

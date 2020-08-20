@@ -12,3 +12,4 @@ readme = "readme.md"
 gfa = "0.5"
 structopt = "0.3"
 bstr = "0.2"
+rs-cactusgraph = {git = "https://github.com/HopedWall/rs-cactusgraph"}
